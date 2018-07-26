@@ -654,6 +654,9 @@ static int32_t msm_sensor_driver_is_special_support(
 	return rc;
 }
 
+extern int hydrogen_get_back_sensor_name(char *);
+extern int hydrogen_get_front_sensor_name(char *);
+
 /* static function definition */
 int32_t msm_sensor_driver_probe(void *setting,
 	struct msm_sensor_info_t *probed_info, char *entity_name)
@@ -666,6 +669,8 @@ int32_t msm_sensor_driver_probe(void *setting,
 
 	unsigned long                        mount_pos = 0;
 	uint32_t                             is_yuv;
+	char hydrogen_back_sensor_name[32];
+	char hydrogen_front_sensor_name[32];
 
 	/* Validate input parameters */
 	if (!setting) {
@@ -758,6 +763,28 @@ int32_t msm_sensor_driver_probe(void *setting,
 			strlen(slave_info->ois_name));
 		rc = -EINVAL;
 		goto free_slave_info;
+	}
+
+	if (strncmp(slave_info->eeprom_name, "dw9763", strlen("dw9763")) == 0) {
+		hydrogen_get_back_sensor_name(hydrogen_back_sensor_name);
+		CDBG("slave_info sensor_name = %s, back_sensor_name - %s\n",
+			slave_info->sensor_name, hydrogen_back_sensor_name);
+		if (strcmp(slave_info->sensor_name, hydrogen_back_sensor_name) != 0) {
+			pr_err("%s %d: hydrogen back sensor name not match!\n", __func__, __LINE__);
+			rc = -EFAULT;
+			goto free_slave_info;
+		}
+	}
+
+	if (strncmp(slave_info->eeprom_name, "s5k5e8", strlen("s5k5e8")) == 0) {
+		hydrogen_get_front_sensor_name(hydrogen_front_sensor_name);
+		CDBG("slave_info sensor_name = %s, front_sensor_name - %s\n",
+			slave_info->sensor_name, hydrogen_front_sensor_name);
+		if (strcmp(slave_info->sensor_name, hydrogen_front_sensor_name) != 0) {
+			pr_err("%s %d: hydrogen front sensor name not match!\n", __func__, __LINE__);
+			rc = -EFAULT;
+			goto free_slave_info;
+		}
 	}
 
 	/* Print slave info */

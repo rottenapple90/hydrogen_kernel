@@ -1397,6 +1397,12 @@ int mdss_misr_set(struct mdss_data_type *mdata,
 		return -EINVAL;
 	}
 
+	if (!mdata || !req || !ctl) {
+		pr_err("Invalid input params: mdata = %p req = %p ctl = %p",
+			mdata, req, ctl);
+		return -EINVAL;
+	}
+
 	map = mdss_misr_get_map(req->block_id, ctl, mdata);
 
 	if (!map) {

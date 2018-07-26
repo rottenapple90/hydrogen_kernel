@@ -47,6 +47,8 @@ struct panel_id {
 #define LVDS_PANEL		11	/* LVDS */
 #define EDP_PANEL		12	/* LVDS */
 
+#define NIGHT_MAP_LEN		256	/*night mode map array length*/
+
 static inline const char *mdss_panel2str(u32 panel)
 {
 	static const char const *names[] = {

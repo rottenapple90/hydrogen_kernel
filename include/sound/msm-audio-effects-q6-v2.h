@@ -18,6 +18,8 @@
 
 #define MAX_PP_PARAMS_SZ   128
 
+#define MAX_PP_PARAMS_SZ   128
+
 bool msm_audio_effects_is_effmodule_supp_in_top(int effect_module,
 						int topology);
 

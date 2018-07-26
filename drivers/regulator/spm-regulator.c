@@ -1,4 +1,5 @@
 /* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2016 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -105,6 +106,10 @@ static const struct voltage_range ult_hf_range1 = {750000, 750000, 1525000,
  * Settling delay for FTS2.5
  * Warm-up=20uS, 0-10% & 90-100% non-linear V-ramp delay = 50uS
  */
+#define FTS2P5_SETTLING_DELAY_US	70
+
+/* Adding setteling delay for FTS2.5 */
+/* warm-up=20uS, 0-10% & 90-100% V-ramp = 50uS */
 #define FTS2P5_SETTLING_DELAY_US	70
 
 /* VSET value to decide the range of ULT SMPS */

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2016 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -287,6 +288,18 @@ static rx_handler_result_t _rmnet_map_ingress_handler(struct sk_buff *skb,
 	uint8_t mux_id;
 	uint16_t len;
 	int ckresult;
+
+	if (RMNET_MAP_GET_CD_BIT(skb)) {
+		if (config->ingress_data_format
+		    & RMNET_INGRESS_FORMAT_MAP_COMMANDS)
+			return rmnet_map_command(skb, config);
+
+		LOGM("MAP command packet on %s; %s", skb->dev->name,
+		     "Not configured for MAP commands");
+		rmnet_kfree_skb(skb,
+				RMNET_STATS_SKBFREE_INGRESS_NOT_EXPECT_MAPC);
+		return RX_HANDLER_CONSUMED;
+	}
 
 	if (RMNET_MAP_GET_CD_BIT(skb)) {
 		if (config->ingress_data_format

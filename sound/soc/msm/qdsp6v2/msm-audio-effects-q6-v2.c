@@ -37,6 +37,24 @@ do {                                                                    \
 } while (0)
 
 
+#define GET_NEXT(ptr, upper_limit, rc)                                  \
+({                                                                      \
+	if (((ptr) + 1) > (upper_limit)) {                              \
+		pr_err("%s: param list out of boundary\n", __func__);   \
+		(rc) = -EINVAL;                                         \
+	}                                                               \
+	((rc) == 0) ? *(ptr)++ :  -EINVAL;                              \
+})
+
+#define CHECK_PARAM_LEN(len, max_len, tag, rc)                          \
+do {                                                                    \
+	if ((len) > (max_len)) {                                        \
+		pr_err("%s: params length overflows\n", (tag));         \
+		(rc) = -EINVAL;                                         \
+	}                                                               \
+} while (0)
+
+
 bool msm_audio_effects_is_effmodule_supp_in_top(int effect_module,
 						int topology)
 {

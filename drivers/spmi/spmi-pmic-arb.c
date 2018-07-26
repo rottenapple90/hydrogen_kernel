@@ -1095,6 +1095,24 @@ __pmic_arb_periph_irq(int irq, void *dev_id, bool show)
 		}
 	}
 
+	/* ACC_STATUS is empty but IRQ fired check IRQ_STATUS */
+	if (!acc_valid) {
+		for (i = pmic_arb->min_intr_apid; i <= pmic_arb->max_intr_apid;
+				i++) {
+			if (!is_apid_valid(pmic_arb, i))
+				continue;
+			irq_status = readl_relaxed(pmic_arb->intr +
+					pmic_arb->ver->irq_status(i));
+			if (irq_status) {
+				dev_dbg(pmic_arb->dev,
+					"Dispatching for IRQ_STATUS_REG:0x%lx IRQ_STATUS:0x%x\n",
+					(ulong) pmic_arb->ver->irq_status(i),
+					irq_status);
+				ret |= periph_interrupt(pmic_arb, i, show);
+			}
+		}
+	}
+
 	return ret;
 }
 

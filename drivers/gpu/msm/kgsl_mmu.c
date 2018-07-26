@@ -1,4 +1,5 @@
 /* Copyright (c) 2002,2007-2015, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2016 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -758,6 +759,10 @@ kgsl_mmu_get_gpuaddr(struct kgsl_pagetable *pagetable,
 		return 0;
 	}
 
+	if (size < memdesc->size) {
+		memdesc->size = 0;
+		return -EINVAL;
+	}
 	/*
 	 * Try to map external memory in the upper region first and then fall
 	 * back to user region if that fails.  All memory allocated by the user
