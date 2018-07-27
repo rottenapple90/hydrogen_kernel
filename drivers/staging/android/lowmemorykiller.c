@@ -50,9 +50,6 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/almk.h>
-#if defined(CONFIG_ZRAM)
-#include "../zsmalloc/zsmalloc.h"
-#endif
 
 #ifdef CONFIG_HIGHMEM
 #define _ZONE ZONE_HIGHMEM
@@ -466,9 +463,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	int other_free;
 	int other_file;
 	unsigned long nr_to_scan = sc->nr_to_scan;
-#if defined(CONFIG_ZRAM)
-	unsigned long total_pool_pages, total_ori_pages;
-#endif
 
 	if (nr_to_scan > 0) {
 		if (mutex_lock_interruptible(&scan_mutex) < 0)
@@ -565,16 +559,6 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			continue;
 		}
 		tasksize = get_mm_rss(p->mm);
-#if defined(CONFIG_ZRAM)
-		zs_get_page_usage(&total_pool_pages, &total_ori_pages);
-		if (total_pool_pages && total_ori_pages) {
-			lowmem_print(3, "tasksize : %d\n", tasksize);
-			tasksize += (int)total_pool_pages *
-				get_mm_counter(p->mm, MM_SWAPENTS)
-				/ total_ori_pages;
-			lowmem_print(3, "task real size : %d\n", tasksize);
-		}
-#endif
 		task_unlock(p);
 		if (tasksize <= 0)
 			continue;

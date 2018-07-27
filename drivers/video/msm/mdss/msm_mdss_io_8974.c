@@ -1175,56 +1175,6 @@ static bool mdss_dsi_is_ulps_req_valid(struct mdss_dsi_ctrl_pdata *ctrl,
 	pr_debug("%s: checking ulps req validity for ctrl%d\n",
 		__func__, ctrl->ndx);
 
-	if (!mdss_dsi_is_ulps_req_valid(ctrl, enable)) {
-		pr_debug("%s: skiping ULPS config for ctrl%d, enable=%d\n",
-			__func__, ctrl->ndx, enable);
-		return false;
-	}
-
-	/*
-	 * No need to enable ULPS if panel is not yet initialized.
-	 * However, this should be allowed in following usecases:
-	 *   1. If ULPS during suspend feature is enabled, where we
-	 *      configure the lanes in ULPS after turning off the panel.
-	 *   2. When coming out of idle PC with clamps enabled, where we
-	 *      transition the controller HW state back to ULPS prior to
-	 *      disabling ULPS.
-	 */
-	if (enable && !ctrl->mmss_clamp &&
-		!(ctrl->ctrl_state & CTRL_STATE_PANEL_INIT) &&
-		!pdata->panel_info.ulps_suspend_enabled) {
-		pr_debug("%s: panel not yet initialized\n", __func__);
-		return false;
-	}
-
-	/*
-	 * For split-DSI usecase, wait till both controllers are initialized.
-	 * The same exceptions as above are applicable here too.
-	 */
-	if (mdss_dsi_is_hw_config_split(ctrl->shared_data)) {
-		octrl = mdss_dsi_get_other_ctrl(ctrl);
-		if (enable && !ctrl->mmss_clamp && octrl &&
-			!(octrl->ctrl_state & CTRL_STATE_PANEL_INIT) &&
-			!pdata->panel_info.ulps_suspend_enabled) {
-			pr_debug("%s: split-DSI, other ctrl not ready yet\n",
-				__func__);
-			return false;
-		}
-	}
-
-	return true;
-}
-
-static bool mdss_dsi_is_ulps_req_valid(struct mdss_dsi_ctrl_pdata *ctrl,
-		int enable)
-{
-	struct mdss_dsi_ctrl_pdata *octrl = NULL;
-	struct mdss_panel_data *pdata = &ctrl->panel_data;
-	struct mdss_panel_info *pinfo = &pdata->panel_info;
-
-	pr_debug("%s: checking ulps req validity for ctrl%d\n",
-		__func__, ctrl->ndx);
-
 	if (!mdss_dsi_ulps_feature_enabled(pdata) &&
 			!pinfo->ulps_suspend_enabled) {
 		pr_debug("%s: ULPS feature is not enabled\n", __func__);
@@ -1643,15 +1593,6 @@ static int mdss_dsi_core_power_ctrl(struct mdss_dsi_ctrl_pdata *ctrl,
 			rc = mdss_dsi_clamp_ctrl(ctrl, 1);
 			if (rc)
 				pr_err("%s: Failed to enable dsi clamps. rc=%d\n",
-					__func__, rc);
-		} else {
-			/*
-			 * Make sure that controller is not in ULPS state when
-			 * the DSI link is not active.
-			 */
-			rc = mdss_dsi_ulps_config(ctrl, 0);
-			if (rc)
-				pr_err("%s: failed to disable ulps. rc=%d\n",
 					__func__, rc);
 		} else {
 			/*

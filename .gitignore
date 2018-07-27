@@ -99,3 +99,4 @@ upload.sh
 version
 out/
 repack_ramdisk.sh
+kernel/x509_certificate_list

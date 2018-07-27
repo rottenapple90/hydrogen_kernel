@@ -2158,38 +2158,6 @@ static int get_prop_capacity(struct fg_chip *chip)
 			FULL_SOC_RAW - 2) + 1;
 }
 
-static int get_last_soc(struct fg_chip *chip)
-{
-	u8 cap[2];
-	int rc, capacity = 0, tries = 0;
-
-	while (tries < MAX_TRIES_SOC) {
-		rc = fg_read(chip, cap,
-				chip->soc_base + SOC_MONOTONIC_SOC, 2);
-		if (rc) {
-			pr_err("spmi read failed: addr=%03x, rc=%d\n",
-				chip->soc_base + SOC_MONOTONIC_SOC, rc);
-			return rc;
-		}
-
-		if (cap[0] == cap[1])
-			break;
-
-		tries++;
-	}
-
-	if (tries == MAX_TRIES_SOC) {
-		pr_err("shadow registers do not match\n");
-		return DEFAULT_CAPACITY;
-	}
-
-	if (cap[0] > 0)
-		capacity = (cap[0] * 100 / FULL_PERCENT);
-
-	return capacity;
-}
-
-
 #define HIGH_BIAS	3
 #define MED_BIAS	BIT(1)
 #define LOW_BIAS	BIT(0)

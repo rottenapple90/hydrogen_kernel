@@ -416,47 +416,6 @@ static void kgsl_mem_entry_commit_process(struct kgsl_process_private *process,
 	spin_unlock(&entry->priv->mem_lock);
 }
 
-static void kgsl_mem_entry_commit_mem_list(struct kgsl_process_private *process,
-				struct kgsl_mem_entry *entry)
-{
-	struct rb_node **node;
-	struct rb_node *parent = NULL;
-
-	if (!entry->memdesc.gpuaddr)
-		return;
-
-	/* Insert mem entry in mem_rb tree */
-	node = &process->mem_rb.rb_node;
-	while (*node) {
-		struct kgsl_mem_entry *cur;
-
-		parent = *node;
-		cur = rb_entry(parent, struct kgsl_mem_entry, node);
-
-		if (entry->memdesc.gpuaddr < cur->memdesc.gpuaddr)
-			node = &parent->rb_left;
-		else
-			node = &parent->rb_right;
-	}
-
-	rb_link_node(&entry->node, parent, node);
-	rb_insert_color(&entry->node, &process->mem_rb);
-}
-
-static void kgsl_mem_entry_commit_process(struct kgsl_process_private *process,
-				struct kgsl_mem_entry *entry)
-{
-	if (!entry)
-		return;
-
-	spin_lock(&entry->priv->mem_lock);
-	/* Insert mem entry in mem_rb tree */
-	kgsl_mem_entry_commit_mem_list(process, entry);
-	/* Replace mem entry in mem_idr using id */
-	idr_replace(&entry->priv->mem_idr, entry, entry->id);
-	spin_unlock(&entry->priv->mem_lock);
-}
-
 /**
  * kgsl_mem_entry_attach_process - Attach a mem_entry to its owner process
  * @entry: the memory entry
@@ -3396,7 +3355,6 @@ long kgsl_ioctl_cff_user_event(struct kgsl_device_private *dev_priv,
 			param->op1, param->op2,
 			param->op3, param->op4, param->op5);
 
-	kgsl_mem_entry_commit_process(private, entry);
 	return result;
 }
 
@@ -3705,15 +3663,9 @@ static int kgsl_check_gpu_addr_collision(
 			spin_lock(&private->mem_lock);
 			kgsl_mem_entry_commit_mem_list(private, entry);
 			spin_unlock(&private->mem_lock);
-		} else {
-			/* Insert mem entry in mem_rb tree */
-			spin_lock(&private->mem_lock);
-			kgsl_mem_entry_commit_mem_list(private, entry);
-			spin_unlock(&private->mem_lock);
 		}
 	} else {
-		trace_kgsl_mem_unmapped_area_collision(entry, addr, len,
-							ret);
+		
 		if (!gpumap_free_addr) {
 			spin_unlock(&private->mem_lock);
 			return ret;
